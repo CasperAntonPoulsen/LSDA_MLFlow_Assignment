@@ -19,6 +19,7 @@ from influxdb import InfluxDBClient # install via "pip install influxdb"
 import os
 import warnings
 import sys
+from urllib.parse import urlparse
 
 import mlflow
 import mlflow.sklearn
@@ -51,23 +52,23 @@ class WindVectorTransformer(BaseEstimator, TransformerMixin):
 			if md < 0:
 				md += 360
 			self.md_dict[self.directions[i]]=md
-	
+
 	def calculate_u(self, wwd, ws):
 		return ws*math.cos(self.md_dict[wwd])
-	
+
 	def calculate_v(self, wwd, ws):
 		return ws*math.sin(self.md_dict[wwd])
-	
+
 	def transform(self, X, y = None):
 		X_ = X
 		rows = []
 		for index, row in X_.iterrows():
 			vector = [self.calculate_u(row["Direction"],row["Speed"]),
-					  self.calculate_v(row["Direction"],row["Speed"])]		  
+					  self.calculate_v(row["Direction"],row["Speed"])]
 			rows.append(pd.DataFrame.from_dict({index:vector},columns=["u","v"],orient="index"))
 
 		return pd.concat(rows)
-			
+
 	def fit(self, X, y = None):
 		return self
 
@@ -112,13 +113,13 @@ if __name__ == "__main__":
 	test_y = gen_df_alligned.iloc[train_length:]
 
 	gamma = float(sys.argv[1]) if len(sys.argv) > 1 else "scale"
-	kernal = sys.argv[2] if len(sys.argv) > 2 else "rbf"
+	kernel = sys.argv[2] if len(sys.argv) > 2 else "rbf"
 	C = float(sys.argv[3]) if len(sys.argv) > 3 else 1.0
 
 	with mlflow.start_run():
 		pipeline = Pipeline(steps=[
 			("WindVector_transform",WindVectorTransformer()),
-			("svm_model", svm.SVR(gamma = gamma, kernal = kernal, C=C))
+			("svm_model", svm.SVR(gamma = gamma, kernel = kernel, C=C))
 		])
 
 		pipeline.fit(train_X, train_y)
@@ -127,13 +128,13 @@ if __name__ == "__main__":
 
 		(rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)
 
-		print("SVR model (gamma=%f, kernal=%f, C=%f):" % (gamma, kernal, C))
+		print("SVR model (gamma={}, kernel={}, C={})".format(gamma, kernel, C))
 		print("  RMSE: %s" % rmse)
 		print("  MAE: %s" % mae)
 		print("  R2: %s" % r2)
 
 		mlflow.log_param("gamma",gamma)
-		mlflow.log_param("kernal",kernal)
+		mlflow.log_param("kernel",kernel)
 		mlflow.log_param("C",C)
 		mlflow.log_metric("rmse", rmse)
 		mlflow.log_metric("r2", r2)
@@ -142,6 +143,6 @@ if __name__ == "__main__":
 		tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
 		if tracking_url_type_store != "file":
-			mlflow.sklearn.log_model(lr, "model", registered_model_name="SVRWindModel")
+			mlflow.sklearn.log_model(pipeline, "model", registered_model_name="SVRWindModel")
 		else:
-			mlflow.sklearn.log_model(lr, "model")
+			mlflow.sklearn.log_model(pipeline, "model")
