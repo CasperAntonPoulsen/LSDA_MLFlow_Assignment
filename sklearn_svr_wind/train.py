@@ -25,7 +25,7 @@ import mlflow
 import mlflow.sklearn
 #mlflow.set_tracking_uri("http://13.79.151.110:5000/")
 #mlflow.set_tracking_uri("http://training.itu.dk:5000/")
-#mlflow.set_experiment("sklearnSvrWind_caap")
+mlflow.set_experiment("sklearnSvrWindCaap")
 import logging
 
 logging.basicConfig(level=logging.WARN)
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
 		tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
-#		if tracking_url_type_store != "file":
-#			mlflow.sklearn.log_model(pipeline, "model", registered_model_name="SVRWindModel")
-#		else:
-#			mlflow.sklearn.log_model(pipeline, "model")
+		if tracking_url_type_store != "file":
+			mlflow.sklearn.log_model(pipeline, "model", registered_model_name="SVRWindModel")
+		else:
+			mlflow.sklearn.log_model(pipeline, "model")
