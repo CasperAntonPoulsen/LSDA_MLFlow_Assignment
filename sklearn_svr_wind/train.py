@@ -25,7 +25,7 @@ import mlflow
 import mlflow.sklearn
 #mlflow.set_tracking_uri("http://13.79.151.110:5000/")
 #mlflow.set_tracking_uri("http://training.itu.dk:5000/")
-mlflow.set_experiment("sklearnSvrWindCaap")
+#mlflow.set_experiment("sklearnSvrWindCaap")
 import logging
 
 logging.basicConfig(level=logging.WARN)
