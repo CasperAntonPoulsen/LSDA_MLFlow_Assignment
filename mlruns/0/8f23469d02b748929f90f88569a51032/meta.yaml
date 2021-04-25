@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/caspe/Documents/GitHub/LSDA_MLFlow_Assignment/mlruns/0/8f23469d02b748929f90f88569a51032/artifacts
+end_time: 1619354247256
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: 8f23469d02b748929f90f88569a51032
+run_uuid: 8f23469d02b748929f90f88569a51032
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1619354241170
+status: 4
+tags: []
+user_id: caspe

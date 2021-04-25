@@ -23,7 +23,9 @@ from urllib.parse import urlparse
 
 import mlflow
 import mlflow.sklearn
-
+#mlflow.set_tracking_uri("http://13.79.151.110:5000/")
+#mlflow.set_tracking_uri("http://training.itu.dk:5000/")
+#mlflow.set_experiment("sklearnSvrWind_caap")
 import logging
 
 logging.basicConfig(level=logging.WARN)
@@ -117,7 +119,7 @@ if __name__ == "__main__":
 	C = [float(i) for i in sys.argv[3].split(",")] if len(sys.argv) > 3 else [1.0]
 
 	with mlflow.start_run():
-		mlflow.set_tracking_uri("13.79.151.110:5000")
+
 		pipeline = Pipeline(steps=[
 			("WindVector_transform",WindVectorTransformer()),
 			("svm_model", svm.SVR())
@@ -127,7 +129,7 @@ if __name__ == "__main__":
               'svm_model__gamma':gamma}
 
 		tscv = TimeSeriesSplit(n_splits=5)
-		pipeline = GridSearchCV(pipeline, param_grid=parameters, n_jobs=15, cv= tscv
+		pipeline = GridSearchCV(pipeline, param_grid=parameters, n_jobs=15, cv= tscv)
 
 		pipeline.fit(train_X, train_y)
 
