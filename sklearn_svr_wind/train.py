@@ -112,17 +112,26 @@ if __name__ == "__main__":
 	train_y = gen_df_alligned.iloc[:train_length]
 	test_y = gen_df_alligned.iloc[train_length:]
 
-	gamma = float(sys.argv[1]) if len(sys.argv) > 1 else "scale"
-	kernel = sys.argv[2] if len(sys.argv) > 2 else "rbf"
-	C = float(sys.argv[3]) if len(sys.argv) > 3 else 1.0
+	gamma = [float(i) for i in sys.argv[1].split(",")] if len(sys.argv) > 1 else [0.1]
+	kernel = sys.argv[2].split(",") if len(sys.argv) > 2 else ["rbf"]
+	C = [float(i) for i in sys.argv[3].split(",")] if len(sys.argv) > 3 else [1.0]
 
 	with mlflow.start_run():
+		mlflow.set_tracking_uri("13.79.151.110:5000")
 		pipeline = Pipeline(steps=[
 			("WindVector_transform",WindVectorTransformer()),
-			("svm_model", svm.SVR(gamma = gamma, kernel = kernel, C=C))
+			("svm_model", svm.SVR())
 		])
+		parameters = {'svm_model__kernel':kernel,
+              'svm_model__C':C,
+              'svm_model__gamma':gamma}
+
+		tscv = TimeSeriesSplit(n_splits=5)
+		pipeline = GridSearchCV(pipeline, param_grid=parameters, n_jobs=15, cv= tscv
 
 		pipeline.fit(train_X, train_y)
+
+		bestParams = pipeline.best_params_
 
 		predicted_qualities = pipeline.predict(test_X)
 
@@ -133,9 +142,12 @@ if __name__ == "__main__":
 		print("  MAE: %s" % mae)
 		print("  R2: %s" % r2)
 
-		mlflow.log_param("gamma",gamma)
-		mlflow.log_param("kernel",kernel)
-		mlflow.log_param("C",C)
+		mlflow.log_param("gammas",sys.argv[1])
+		mlflow.log_param("kernels",sys.argv[2])
+		mlflow.log_param("Cs",sys.argv[3])
+		mlflow.log_param("bestGamma",bestParams['svm_model__gamma'])
+		mlflow.log_param("bestKernel",bestParams['svm_model__kernel'])
+		mlflow.log_param("bestC",bestParams['svm_model__C'])
 		mlflow.log_metric("rmse", rmse)
 		mlflow.log_metric("r2", r2)
 		mlflow.log_metric("mae", mae)
